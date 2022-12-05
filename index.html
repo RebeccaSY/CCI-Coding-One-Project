@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html>
+ <head>
+   <script>window.onerror = function(error, url, line) {parent.postMessage(["console", "❌ -- [ERROR] -- ❌ -- ⚠️ " + error], "*")};var cl = console.log;console.log = function () {var msg = [...arguments].join();parent.postMessage(["console", msg], "*");  }  </script><script crossorigin src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/109/three.min.js">
+</script>
+   
+   <script crossorigin src = "orbitControls.js">
+</script>
+   <script src = "https://mimicproject.com/libs/maximilian.js">
+</script>
+   
+  <meta charset="UTF-8">
+  <title>Project about finity and infinity</title>
+  <style>
+   body {margin:0; background-color: #91c5cc}
+   canvas {width: 100%; height: 100%;}
+  </style>
+ </head>
+ <body>
+   
+   <script >
+   	var maxi = maximilian();
+    var mySample = new maxi.maxiSample();
+    var audio = new Audio('ThePromise.mp3'); 
+    audio.play();
+     
+     /**
+    audio.loadSample('ThePromise.wav', mySample);
+    return mySample.play();
+     **/   
+     
+  
+</script>
+   
+ <script>
+      
+   // ------------------------
+   //   VARIABLE DECLARATION 
+   // ------------------------
+   
+   // Scene
+   var scene = new THREE.Scene();
+   
+   var camera, renderer, floor, d_Light, s_Light, point, controls;
+   var cam_track, cam_curve;		// moving track of camera
+   var patt = 1.0;
+   var process = 0;		// anim process
+   var progress = 0;	// for camera movement
+   // objects
+   var cube, sphere, cylinder, wall, wave_curve; 
+   var sculpture1, sculpture2, sculpture3, sculpture4, sculpture5, sculpture6;
+   var screens = [];	// 8 screens with animation stored in an array
+   var feathers = [];	// 9 featherss with animation stored in an array
+   const outer_radius = 170;
+   const middle_radius = 110;
+   const screen_radius = 108;
+   const cage_radius = 60;
+   const num_feathers = 51; 
+      
+   // -----------------
+   //     FUNCTIONS 
+   // -----------------
+      
+   // Camera
+   function camare_init() {
+     camera = new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000);   
+     camera.position.set(-170, 280, 0);
+     camera.lookAt(new THREE.Vector3(0, 0, 0));
+   }
+   
+   function create_track(){
+   	   cam_curve = new THREE.CatmullRomCurve3([
+        	new THREE.Vector3(-170, 280, 0),	// start from outer
+        	new THREE.Vector3(-165, 110, 0),
+        	new THREE.Vector3(-115, 50, 115),
+        	new THREE.Vector3(0, 50, 165),
+        	new THREE.Vector3(115, 50, 115),
+        	new THREE.Vector3(165, 50, 0),
+        	new THREE.Vector3(115, 50, -115),
+        	new THREE.Vector3(0, 50, -165),
+        	new THREE.Vector3(-115, 50, -115),
+        	new THREE.Vector3(-95, 55, -55),	// to middle circle
+        	new THREE.Vector3(-90, 60, 0),
+        	new THREE.Vector3(-68, 60, 68),
+        	new THREE.Vector3(0, 60, 90),
+        	new THREE.Vector3(68, 60, 68),
+        	new THREE.Vector3(90, 60, 0),
+        	new THREE.Vector3(68, 60, -68),
+        	new THREE.Vector3(0, 60, -90),
+        	new THREE.Vector3(-68, 60, -68),	// into the cage
+        	new THREE.Vector3(-50, 60, 0),
+        	new THREE.Vector3(0, 60, 40),
+        	new THREE.Vector3(35, 60, 0),
+        	new THREE.Vector3(0, 60, 30),       
+        	new THREE.Vector3(0, 60, 0),      
+        	new THREE.Vector3(0, 90, 0),      
+        	new THREE.Vector3(0, 360, 0),	// back top view
+        	new THREE.Vector3(0, 320, 0),
+        	new THREE.Vector3(0, 280, 0)
+       ]);
+       const points = cam_curve.getPoints(6000);
+       var geometry = new THREE.BufferGeometry().setFromPoints(points);
+       var material = new THREE.LineBasicMaterial({color:'#090909', transparent: true, opacity: 0});
+       cam_track = new THREE.Line(geometry, material);
+       cam_track.position.set(0, 0, 0);
+       scene.add(cam_track);
+       //return cam_track;
+   }
+ 
+  // Renderer
+   function renderer_init() {
+     renderer = new THREE.WebGLRenderer();
+     renderer.setSize(window.innerWidth, window.innerHeight);
+     renderer.setClearColor("#1D1A3B");
+     renderer.shadowMap.enabled = true;
+     document.body.appendChild(renderer.domElement);
+   }
+   
+   // Trigger window resize
+   function onWindowResize() {
+	 camera.aspect = window.innerWidth / window.innerHeight;
+     camera.updateProjectionMatrix();
+	 renderer.setSize(window.innerWidth, window.innerHeight);
+   }  
+   
+  // Create a floor
+   function add_floor() {
+     var floorGeometry = new THREE.BoxGeometry(420, 1, 420);
+     var floorMaterial = new THREE.MeshStandardMaterial({color: '#090909'});
+     var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+     floor.position.y = -2;
+     scene.add(floor);
+   }  
+ 
+  // Create objects
+   function add_table() {
+     var geometry = new THREE.CylinderGeometry(7, 14, 38, 36, 6);
+     var material = new THREE.MeshStandardMaterial({color:'#AE7F23', metalness: 0.8});
+     cylinder = new THREE.Mesh(geometry, material);
+     cylinder.position.set(0,19,0);
+     cylinder.castShadow = true;
+     scene.add(cylinder);
+     var geometry2 = new THREE.CylinderGeometry(7, 7, 2, 36, 1);
+     var material2 = new THREE.MeshStandardMaterial({color:'#AE7F23',  metalness: 0.8});
+     cylinder2 = new THREE.Mesh(geometry2, material2);
+     cylinder2.position.set(0,40,0);
+     cylinder2.castShadow = true;
+     scene.add(cylinder2);
+   }
+   
+   function add_wall(x, y, z, angle, material) {
+     var geometry = new THREE.BoxGeometry(70, 100, 1);
+     wall = new THREE.Mesh(geometry, material);
+     wall.position.set(x, y, z);
+     wall.rotation.y = angle;
+     wall.castShadow = true;
+     scene.add(wall);
+   }
+   
+   
+   function create_screen(x, y, z, angle, material) {
+     var geometry = new THREE.PlaneBufferGeometry(28, 40);
+     var screen = new THREE.Mesh(geometry, material);
+     screen.position.set(x, y, z);
+     screen.rotation.y = angle;
+     return screen;		// get the screen object to make animation
+   }
+   
+   function create_feather(x, y, z, material) {
+     var geometry = new THREE.PlaneBufferGeometry(20, 30);
+     var obj = new THREE.Mesh(geometry, material);
+     obj.position.set(x, y, z);
+     obj.rotation.x = -Math.PI / 2;	//change to XZ-surface
+     return obj;		// get the feather object to make animation
+   }
+   
+   // line of cage - combining a straight line and a curve
+   function cage_component(x, y, z, material, angle) {
+     const conn_height = 75;
+     // straight line
+     var line = new THREE.LineCurve3(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, conn_height+1, 0));
+     var points = line.getPoints(100);
+     var geometry = new THREE.Geometry().setFromPoints(points);
+     line = new THREE.Line(geometry, material);     
+     line.position.set(x, y, z);
+     line.castShadow = true;
+     scene.add(line);
+     // curve at the top
+     var curve = new THREE.QuadraticBezierCurve3(
+          new THREE.Vector3( 0, 0, 0 ),
+          new THREE.Vector3( -0.25*cage_radius * Math.sin(angle), 25, -0.25*cage_radius * Math.cos(angle)),
+          new THREE.Vector3( -cage_radius * Math.sin(angle), 28, -cage_radius * Math.cos(angle))
+     );
+     var points_c = curve.getPoints(100);
+     var geometry_c = new THREE.Geometry().setFromPoints(points_c);
+     curve = new THREE.Line(geometry_c, material);     
+     curve.position.set(x, conn_height, z);
+     curve.castShadow = true;
+     scene.add(curve);
+     
+   }
+   
+   function add_sphere() {
+     var s_geometry = new THREE.SphereGeometry(5,12,12);
+     var material = new THREE.MeshStandardMaterial({color:'#EAB7F6', metalness: 0.5, wireframe:true});
+     sphere = new THREE.Mesh(s_geometry, material);
+     sphere.position.set(0,50,0);
+     sphere.castShadow = true;
+     scene.add(sphere);
+   }
+   
+   function add_container(x, y, z, material) {
+   	 var geometry = new THREE.CylinderGeometry(15, 15, 20, 18, 6);
+     cylinder = new THREE.Mesh(geometry, [material]);	// only color the side
+     cylinder.position.set(x, y, z);
+     cylinder.castShadow = true;
+     scene.add(cylinder);
+     geometry = new THREE.CircleGeometry(15, 18);
+     var mat = new THREE.MeshBasicMaterial({color: '#C49C46', opacity: 0.5});
+     // Then create the bottom of the container
+     circle = new THREE.Mesh(geometry, mat);
+     circle.position.set(x, 1.1, z);
+     circle.rotation.x = -Math.PI / 2;	//change to XZ-surface
+     scene.add(circle);
+   }
+   
+   function add_curve() {     // for stairs? 
+     const curve = new THREE.CatmullRomCurve3( [
+         new THREE.Vector3(10, 0, 0),
+         new THREE.Vector3(7, 0.5, -7),
+         new THREE.Vector3(0, 1, -10),
+         new THREE.Vector3(-7, 1.5, -7),
+         new THREE.Vector3(-10, 2, 0),
+         new THREE.Vector3(-7, 2.5, 7),
+         new THREE.Vector3(0, 3, 10),
+         new THREE.Vector3(7, 3.5, 7),
+         new THREE.Vector3(10, 4, 10)
+] );
+      const points = curve.getPoints(100);
+       var geometry = new THREE.BufferGeometry().setFromPoints(points);
+       var material = new THREE.LineBasicMaterial({color:'#EAB7F6'});
+       wave_curve = new THREE.Line(geometry, material);
+       wave_curve.position.set(0,50,60);
+       scene.add(wave_curve);    
+   }
+   
+   // Create sculptures   
+   function sculp_01(x, y, z) {
+     var geometry = new THREE.TorusKnotGeometry(6, 3);
+     var material = new THREE.MeshStandardMaterial({color:'#FFFFFF', transparent: true, opacity: 0.5, side: THREE.DoubleSide, map: textureLoader.load('texture_blyl.png')});
+     var sc = new THREE.Mesh(geometry, material);
+     sc.position.set(x, y, z);
+     sc.castShadow = true;
+     return sc;
+   }
+
+   function sculp_02(x, y, z) {
+     var geometry = new THREE.TorusGeometry(9, 2, 18, 18);
+     var material = new THREE.MeshStandardMaterial({color:'#EEEEEE', transparent: true, side: THREE.DoubleSide, map: textureLoader.load('texture_blyl.png')});
+     var sc = new THREE.Mesh(geometry, material);
+     sc.position.set(x, y, z);
+     sc.castShadow = true;
+     return sc;
+   }   
+   
+   function sculp_03(x, y, z) {
+     var geometry = new THREE.ConeGeometry(9, 16, 4, 2);
+     var material = new THREE.MeshStandardMaterial({color:'#EEEEEE', transparent: true, side: THREE.DoubleSide, opacity: 0.8, map: textureLoader.load('texture_blyl.png')});
+     var sc = new THREE.Line(geometry, material);
+     sc.rotation.x = Math.PI;
+     sc.position.set(x, y, z);
+     return sc;
+   } 
+   
+   function sculp_04(x, y, z) {     
+     var curve = new THREE.CatmullRomCurve3( [
+         new THREE.Vector3(10, 0, 0),
+         new THREE.Vector3(7, 0.5, -7),
+         new THREE.Vector3(0, 1, -10),
+         new THREE.Vector3(-7, 1.5, -7),
+         new THREE.Vector3(-10, 2, 0),
+         new THREE.Vector3(-7, 2.5, 7),
+         new THREE.Vector3(0, 3, 10),
+         new THREE.Vector3(7, 4, 7),
+         new THREE.Vector3(10, 4.5, 0),
+         new THREE.Vector3(7, 5, -7),
+         new THREE.Vector3(0, 5.5, -10),
+         new THREE.Vector3(-7, 6, -7),
+         new THREE.Vector3(-10, 6.5, 0),
+         new THREE.Vector3(-7, 7, 7),
+         new THREE.Vector3(0, 7.5, 10),
+         new THREE.Vector3(7, 8, 7)
+] );
+     var points = curve.getPoints(200);
+     var geometry = new THREE.BufferGeometry().setFromPoints(points);
+     var material = new THREE.LineBasicMaterial({color:'#EAB7F6', linewidth: 2});
+     var sc = new THREE.Line(geometry, material);
+     sc.position.set(x, y, z);
+     return sc;     
+   }
+   
+   function sculp_05(x, y, z) {
+     var geometry = new THREE.SphereGeometry(3, 12, 12);
+     var material = new THREE.MeshStandardMaterial({color:'#EEEEEE', transparent: true, map: textureLoader.load('texture_blyl.png')});
+     var sc = new THREE.Mesh(geometry, material);
+     sc.rotation.x = Math.PI;
+     sc.position.set(x, y, z);
+     return sc;
+   }
+   
+   
+   function sculp_06(x, y, z) {
+     var geometry = new THREE.IcosahedronGeometry(9);
+     var material = new THREE.MeshNormalMaterial({color:'#EEEEEE', transparent: true, map: textureLoader.load('texture_blyl.png')});
+     var sc = new THREE.Mesh(geometry, material);
+     sc.rotation.x = Math.PI;
+     sc.position.set(x, y, z);
+     return sc;
+   }
+   
+   
+  // Directional light 
+   function add_dlight() {
+     let d = 10;
+     d_Light = new THREE.DirectionalLight('#ffffff', 1);
+     d_Light.position.set(0,200,200);
+     // provide shadow
+     d_Light.castShadow = true;
+     d_Light.shadow.mapSize = new THREE.Vector2(1024, 1024);
+     d_Light.shadow.camera.near = 0.1;
+     d_Light.shadow.camera.far = 1500;
+     d_Light.shadow.camera.left = d * -1;
+     d_Light.shadow.camera.right = d;
+     d_Light.shadow.camera.top = d;
+     d_Light.shadow.camera.bottom = d * -1;
+     // Add to scene
+     scene.add(d_Light);
+   }
+   
+   function add_pointLight() {
+      point = new THREE.PointLight("ffffff", 1.5, 0, 2);
+      point.position.set(0,50,0);
+      point.castShadow = true;
+      scene.add(point);
+   }
+      
+   function add_spotLight() {
+      s_Light = new THREE.SpotLight("ffffff", 1);
+      s_Light.position.set(0,50,0);
+      s_Light.castShadow = true;
+      scene.add(s_Light);
+   }
+   
+   // calculate the distance between two points
+   function cal_dist(x1, y1, z1, x2, y2, z2) {
+     	var result = (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2);
+   		return Math.sqrt(result);
+   }
+   
+   // ------------------
+   //     ANIMATION 
+   // ------------------
+   var animate = function(){
+     requestAnimationFrame(animate);
+     
+     // Camera movement
+     if (progress <= 1 - 0.002){
+       // camera position
+       const point = cam_curve.getPointAt(progress);
+       // where to look at
+       const pointTarget = cam_curve.getPointAt(progress + 0.002);
+       camera.position.set(point.x, point.y, point.z);
+       if (cal_dist(point.x, point.y, point.z, 0, 0, 0) < 118 && point.y < 70) {
+       		camera.lookAt(0, pointTarget.y - 10, 0);
+       } else {
+       		camera.lookAt(pointTarget.x, pointTarget.y - 3, pointTarget.z);
+       }
+       progress += 0.0001;
+     } else {
+       progress = 0;
+     }
+
+     sphere.rotation.x += 0.002;
+     sphere.rotation.y += 0.005;
+     sphere.rotation.z += 0.005;
+     
+     process += 0.01;
+     var scale = 0.5 * Math.abs(Math.sin(process)) + 0.5;
+     sculpture1.scale.set(scale, scale, scale);
+     sculpture1.rotation.y += 0.01;
+     sculpture2.material.opacity = 0.5 * Math.abs(Math.sin(process));
+     sculpture2.rotation.x += 0.01;
+     sculpture2.rotation.y += 0.04;
+     sculpture2.rotation.z += 0.03;
+     sculpture3.position.y = 30 + 5 * Math.sin(process);
+     sculpture3.rotation.y += 0.05;
+     sculpture4.rotation.y += 0.01;
+     sculpture5.scale.set(2 * scale, 2 * scale, 2 * scale);
+     sculpture5.position.y = 30 + 10 * Math.sin(process);
+     sculpture6.material.opacity = Math.abs(Math.sin(process));
+     sculpture6.rotation.x -= 0.05;
+     
+     // pattern on screen becomes larger and transparent
+     for (var i = 0; i < 8; i++) {
+         patt += 0.002;
+     	 screens[i].scale.set(patt, patt, patt);
+         if (patt <= 2.5) {
+            // fade to transparent
+             screens[i].material.opacity = 1 - (patt - 1) / 1.5;
+         } else {
+             patt = 1.0;
+         }
+      }     
+           
+      for (i = 0; i < num_feathers; i++) {
+        var curr = feathers[i];		// current object
+        if (cal_dist(curr.position.x, curr.position.y, curr.position.z, 0,0,0) >=200) {	// if out of floor, set back
+        	curr.position.x = Math.random() * cage_radius;
+        	curr.position.z = Math.random() * cage_radius;
+        } else {
+          curr.position.z += posX[i];
+          curr.position.z += posZ[i];
+          curr.rotation.z += rotationZ[i];
+        }
+      }
+     
+     //controls.update();
+     renderer.render(scene, camera);  
+   };   
+   
+   // ----------------------
+   //    MAIN STARTS HERE 
+   // ----------------------   
+   // initialise
+   camare_init();
+   create_track();	// camera movement
+   renderer_init();
+   add_dlight();
+   
+   // create the model
+   add_floor();
+   add_table();
+   add_sphere();
+   add_pointLight();
+   //add_spotLight();
+   //add_curve();
+   
+   // put feathers of different shapes on ground
+   for (var i = 0; i < (num_feathers / 3); i++) {
+     var textureLoader = new THREE.TextureLoader();
+     var mat = new THREE.MeshStandardMaterial({color: "#ffffff", opacity: Math.random(), side:THREE.DoubleSide, map:textureLoader.load('feather1.png'),
+            transparent: true});
+     var obj = create_feather(Math.random()*cage_radius, 1, -Math.random()*cage_radius, mat);
+     scene.add(obj);
+     // store each feather into the array, to be used for animation
+     feathers.push(obj);	
+     mat = new THREE.MeshStandardMaterial({color: "#ffffff", opacity: Math.random(), side:THREE.DoubleSide, map:textureLoader.load('feather2.png'),
+            transparent: true});
+     obj = create_feather(-Math.random()*cage_radius, 1, Math.random()*cage_radius, mat);
+     scene.add(obj);
+     // store each feather into the array, to be used for animation
+     feathers.push(obj);	
+     mat = new THREE.MeshStandardMaterial({color: "#ffffff", opacity: Math.random(), side:THREE.DoubleSide, map:textureLoader.load('feather3.png'),
+            transparent: true});
+     obj = create_feather(-Math.random()*cage_radius, 1, -Math.random()*cage_radius, mat);
+     scene.add(obj);
+     // store each feather into the array, to be used for animation
+     feathers.push(obj);	     
+   }
+      
+   // make sure the feathers are spread among the plane
+   // set random velocity and rotation for each object
+   var posX = [];
+   for (i = 0; i < num_feathers; i++) {
+     posX.push(Math.random()*0.08 - 0.04);	// range between -0.04 ~ 0.04
+   }
+   var posZ = [];
+   for (i = 0; i < num_feathers; i++) {
+     posZ.push(Math.random()*0.08 - 0.04);	// range between -0.04 ~ 0.04
+   }
+   var rotationZ = [];
+   for (i = 0; i < num_feathers; i++) {
+     rotationZ.push(Math.random()*0.04 - 0.02);	// range between -0.02 ~ 0.02
+   }
+   
+   
+   // create multiple walls, facing the centre
+   for (var i = 0; i < 12; i++) {
+     var dire = i * 2/12 * Math.PI; // direction
+     var r = outer_radius; // distance between wall and centre
+     var textureLoader = new THREE.TextureLoader();
+     var mat = new THREE.MeshStandardMaterial({color: "#433135",side:THREE.DoubleSide, map:textureLoader.load('texture_bl.png'),
+            transparent: true});
+     add_wall(r * Math.sin(dire), 50, r * Math.cos(dire), dire, mat);
+   }
+   
+   // create another set of walls and screens
+   for (var i = 0; i < 8; i++) {
+     var dire = i * 2/8 * Math.PI;		// direction
+     var r = screen_radius; 	// distance between object and centre
+     var textureLoader = new THREE.TextureLoader();
+     var mat = new THREE.MeshStandardMaterial({color: "#ffffff", side:THREE.DoubleSide, map:textureLoader.load('anim.png'),
+            transparent: true});
+     var screen = create_screen(r * Math.sin(dire), 50, r * Math.cos(dire), dire, mat);
+     scene.add(screen);
+     // store each screen into the array, to be used for animation
+     screens.push(screen);	
+     
+     r = middle_radius;
+     mat = new THREE.MeshStandardMaterial({color: "#433135",side:THREE.DoubleSide, map:textureLoader.load('texture_bl.png'),
+            transparent: true});
+     add_wall(r * Math.sin(dire), 50, r * Math.cos(dire), dire, mat);
+     
+   }
+   
+   // create cage   
+   for (var i = 0; i < 72; i++) {
+     var dire = i * 2/72 * Math.PI; 	// direction
+     var r = cage_radius; 	// radius of cage botton
+     var mat = new THREE.LineBasicMaterial({color:'#AE7F23'});
+   	 cage_component(r*Math.sin(dire), -1, r*Math.cos(dire), mat, dire);
+   }
+   
+   // create the "art gallery" between walls
+   for (var i = 0; i < 6; i++) {
+     var dire = i * 2/6 * Math.PI; 	// direction
+     var r = (outer_radius + middle_radius) / 2 + 10; 	// distance between item and space centre
+     var textureLoader = new THREE.TextureLoader();
+     var src = "texture.png";
+     var mat = new THREE.MeshBasicMaterial({color:'#D4AC56', transparent:true, openEnded:true, side:THREE.DoubleSide, map:THREE.ImageUtils.loadTexture(src)});
+   	 add_container(r*Math.sin(dire), 5, r*Math.cos(dire), mat);
+   }
+   
+   // sculptures 1 - 6
+   var dist = (outer_radius + middle_radius) / 2 + 10; 	// distance between item and space centre
+   sculpture1 = sculp_01(dist*Math.sin(1/3*Math.PI), 30, dist*Math.cos(1/3*Math.PI));
+   scene.add(sculpture1);
+   
+   sculpture2 = sculp_02(dist*Math.sin(2/3*Math.PI), 30, dist*Math.cos(2/3*Math.PI));
+   scene.add(sculpture2);
+   
+   sculpture3 = sculp_03(dist*Math.sin(Math.PI), 30, dist*Math.cos(Math.PI));
+   scene.add(sculpture3);   
+   
+   sculpture4 = sculp_04(-dist*Math.sin(2/3*Math.PI), 30, dist*Math.cos(2/3*Math.PI));
+   scene.add(sculpture4);
+      
+   sculpture5 = sculp_05(-dist*Math.sin(1/3*Math.PI), 30, dist*Math.cos(1/3*Math.PI));
+   scene.add(sculpture5);
+   
+   sculpture6 = sculp_06(dist*Math.sin(0), 30, dist*Math.cos(0));
+   scene.add(sculpture6);
+   
+         
+   window.addEventListener('resize', onWindowResize, false); 
+   //controls = new THREE.OrbitControls(camera, renderer.comElement);
+   animate();
+   
+
+</script>
+ 
+ </body>
+</html>
