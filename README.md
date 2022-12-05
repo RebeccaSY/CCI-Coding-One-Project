@@ -3,7 +3,7 @@
 
 mimic link: https://mimicproject.com/code/33daa046-3a31-a7a3-a8f1-ae7012afeff5
 
-video link: 
+video link: https://youtu.be/3RUcDnY7md0
 
 This design is a space with floor, walls, and sculptures. It’s not an enclosed space, but presents the feeling of limitation. 
 
