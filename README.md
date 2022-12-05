@@ -1,6 +1,8 @@
 # CCI-Coding-One-Project
 2022.12 CCI Coding One Project
 
+Github link: https://github.com/RebeccaSY/CCI-Coding-One-Project.git
+
 mimic link: https://mimicproject.com/code/33daa046-3a31-a7a3-a8f1-ae7012afeff5
 
 video link: https://youtu.be/3RUcDnY7md0
